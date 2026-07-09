@@ -27,7 +27,7 @@ jobs:
           python-version: '3.12'
 
       - name: Instalar dependencias
-        run: pip install -r requirements.txt
+        run: pip install requests feedparser
 
       - name: Enviar noticias a Telegram
         env:
