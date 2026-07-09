@@ -1,0 +1,44 @@
+name: Noticias Honduras a Telegram
+
+on:
+  schedule:
+    - cron: '0 13 * * *'   # 7:00 a. m. HN
+    - cron: '0 19 * * *'   # 1:00 p. m. HN
+    - cron: '0 2 * * *'    # 8:00 p. m. HN
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: noticias-hn
+  cancel-in-progress: false
+
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Enviar noticias a Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python noticias_honduras.py
+
+      - name: Guardar estado (evitar noticias repetidas)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add estado.json
+          git diff --staged --quiet || git commit -m "Actualizar estado de noticias [skip ci]"
+          git push
